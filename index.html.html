@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Atom Challenge – Rebut Kartu, Kumpulkan Poin!</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--f:"Baloo 2","Trebuchet MS",sans-serif;--ink:#2b3a67;--pink:#ff7aa5;--yellow:#ff9fc0;--blue:#4fb3f6}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--f);font-weight:600;color:var(--ink);min-height:100vh;
+background:radial-gradient(circle at 10% 10%,#ffd1e1 0,transparent 40%),radial-gradient(circle at 90% 20%,#e3d4ff 0,transparent 40%),radial-gradient(circle at 50% 100%,#c4e6ff 0,transparent 50%),#fff5fa;background-attachment:fixed}
+button,input{font-family:var(--f)}
+.float{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0}
+.float span{position:absolute;font-size:26px;opacity:.5;animation:fl 8s ease-in-out infinite}
+@keyframes fl{50%{transform:translateY(-24px) rotate(16deg)}}
+main{position:relative;z-index:1;max-width:1250px;margin:auto;padding:14px 14px 40px}
+header{text-align:center;padding:10px 0 0}
+.logo{display:inline-block;font-weight:700;font-size:clamp(34px,8vw,64px);line-height:1;color:#fff;-webkit-text-stroke:6px var(--ink);paint-order:stroke fill;text-shadow:0 6px 0 var(--ink);transform:rotate(-2deg)}
+.logo b{color:var(--yellow)}
+.tag{display:inline-block;margin-top:12px;background:#fff;border:3px solid var(--ink);border-radius:99px;padding:5px 16px;font-weight:700;font-size:clamp(13px,3.4vw,18px);box-shadow:0 4px 0 var(--ink)}
+.nav{display:flex;justify-content:center;gap:10px;margin:18px 0 8px}
+.nav a,.btn,.tab{font-weight:700;font-size:15px;border:3px solid var(--ink);border-radius:99px;padding:8px 18px;cursor:pointer;color:var(--ink);background:#fff;box-shadow:0 4px 0 var(--ink);text-decoration:none;transition:transform .12s,box-shadow .12s;user-select:none}
+.nav a{font-size:17px;padding:10px 22px}
+.nav a.on{background:var(--ink);color:#fff}
+.btn:active,.tab:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.tab[data-k=A]{background:#bfe3ff}.tab[data-k=B]{background:#ffc9dc}.tab[data-k=C]{background:#d9ccff}
+.tab.on{outline:4px solid #fff;transform:scale(1.06)}
+.bar{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:center;margin:14px 0}
+.bar input{font-weight:700;font-size:15px;padding:9px 16px;border:3px solid var(--ink);border-radius:99px;width:min(230px,100%);outline:none}
+.pill{font-weight:700;background:#fff;border:3px solid var(--ink);border-radius:99px;padding:7px 14px}
+.go{background:var(--pink)}
+.page{display:none}.page.on{display:block;animation:in .35s}
+@keyframes in{from{opacity:0;transform:translateY(14px)}}
+h2{margin:26px 4px 12px;font-size:clamp(18px,4vw,24px)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(172px,1fr));gap:16px}
+/* ===== KARTU ===== */
+.card{container-type:inline-size;aspect-ratio:4/5;perspective:900px;cursor:pointer;outline-offset:4px;border-radius:9cqw;animation:up .45s both}
+@keyframes up{from{opacity:0;transform:translateY(20px) scale(.92)}}
+.card:focus-visible{outline:4px solid var(--ink)}
+.tilt{width:100%;height:100%;transform-style:preserve-3d;transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform .15s}
+.in{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .7s cubic-bezier(.34,1.55,.5,1)}
+.card.open .in{transform:rotateY(180deg)}
+.card:active .in{scale:.97}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:9cqw;border:1.8cqw solid var(--d);overflow:hidden;box-shadow:0 1.8cqw 0 var(--d),0 5cqw 6cqw #0002}
+.front{background:radial-gradient(#fff5 1.2px,transparent 1.6px) 0 0/4cqw 4cqw,linear-gradient(160deg,var(--c1),var(--c2))}
+.back{transform:rotateY(180deg);background:linear-gradient(200deg,var(--c1),var(--c2))}
+.front::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 40%,#fff6 50%,transparent 60%);transform:translateX(-120%);animation:shine 4s infinite}
+@keyframes shine{60%,100%{transform:translateX(120%)}}
+.A{--c1:#8fd3ff;--c2:#3d9cf0;--d:#1f5fb3;--t:#164a96}
+.B{--c1:#ffc2d6;--c2:#ff7aa5;--d:#c2285f;--t:#a81c50}
+.C{--c1:#dccbff;--c2:#9b7bf5;--d:#5d3fc4;--t:#4b2fb0}
+.badge{position:absolute;top:3cqw;left:3cqw;background:var(--d);color:#fff;font-weight:700;font-size:max(10px,6.2cqw);padding:1cqw 3.4cqw;border-radius:99px}
+.star{position:absolute;top:2.5cqw;right:3cqw;width:20cqw;height:20cqw;display:grid;place-items:center;background:#fff;color:var(--t);border-radius:50%;border:1cqw solid var(--d);font-weight:700;font-size:max(10px,6.4cqw);line-height:.95;text-align:center;transform:rotate(10deg)}
+.star small{display:block;font-size:max(7px,3.4cqw)}
+.pan{position:absolute;left:8cqw;right:8cqw;top:25cqw;bottom:25cqw;background:#fffdf6;border-radius:6cqw;display:flex;flex-direction:column;align-items:center;justify-content:center;border:.8cqw dashed var(--d);text-align:center;padding:1.5cqw}
+.code{font-weight:700;font-size:max(34px,25cqw);line-height:1;color:var(--t);text-shadow:0 1cqw 0 #0002}
+.hint{font-size:max(9px,4.3cqw);font-weight:700;opacity:.7;margin-top:1cqw}
+.mas{position:absolute;left:3cqw;bottom:1cqw;width:25cqw;height:25cqw;animation:fl 3s ease-in-out infinite}
+.qm{position:absolute;right:6cqw;bottom:5cqw;width:15cqw;height:15cqw;border-radius:50%;background:#fff;color:var(--d);display:grid;place-items:center;font-weight:700;font-size:10cqw;border:.9cqw solid var(--d);animation:bob 1.6s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-2.5cqw) rotate(-8deg)}}
+.back .badge{left:50%;transform:translateX(-50%);top:3cqw;white-space:nowrap}
+.bp{position:absolute;left:4cqw;right:4cqw;top:14cqw;bottom:4cqw;background:#fffdf6;border-radius:6cqw;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2cqw;text-align:center;padding:2cqw;color:var(--t)}
+.ans{font-weight:700;font-size:max(15px,9cqw);line-height:1.15}
+.nm{font-weight:700;font-size:max(12px,6.6cqw);line-height:1.1}
+.chips{display:grid;grid-template-columns:repeat(3,1fr);gap:1.6cqw;width:100%}
+.chip{border-radius:3cqw;padding:1.2cqw .6cqw;border:.7cqw solid var(--d);background:#f1ecff;font-weight:700;font-size:max(9px,4.6cqw);line-height:1.05}
+.chip i{display:block;font-style:normal;font-size:max(7px,3.2cqw);opacity:.75}
+.chip b{font-size:max(13px,7.4cqw)}
+.pos{background:#cfeaff}.neg{background:#ffd3e2}
+.ln{font-weight:700;font-size:max(9.5px,4.7cqw);line-height:1.3;background:#fff;border-radius:3cqw;padding:1.4cqw 2cqw;width:100%;border:.6cqw dashed #0003;color:var(--ink)}
+.tp{font-weight:700;font-size:max(13px,7cqw);color:#fff;padding:1.4cqw 4cqw;border-radius:99px;border:.8cqw solid var(--ink);box-shadow:0 1cqw 0 var(--ink);line-height:1.1}
+.t-Isotop{background:#4fb3f6}.t-Isobar{background:#ff7aa5}.t-Isoton{background:#b266e8}.t-Isoelektron{background:#7a6cf0}.t-IsobarIsoelektron{background:#00b4d8}.t-Tidak{background:#8a93a8}
+.desc{font-weight:700;font-size:max(8.5px,4cqw);line-height:1.2;color:var(--ink)}
+.sum{background:#fff;border:3px solid var(--ink);border-radius:22px;padding:12px 18px;margin:24px 0;box-shadow:0 5px 0 var(--ink)}
+.sum summary{font-weight:700;font-size:20px;cursor:pointer}.sum li{margin:6px 0}
+.empty{text-align:center;font-weight:700;font-size:20px;padding:30px}
+.conf{position:fixed;z-index:9;pointer-events:none;font-size:22px;animation:cf 1s ease-out forwards}
+@keyframes cf{to{transform:translate(var(--x),var(--y)) rotate(360deg);opacity:0}}
+/* ===== PAPAN SKOR ===== */
+.hero{background:linear-gradient(120deg,#bfe6ff,#e9f6ff 55%,#ffd9e8);border:4px solid var(--ink);border-radius:30px;padding:18px 24px;box-shadow:0 6px 0 var(--ink);margin:10px 0 16px}
+.hero h2{margin:0;font-size:clamp(24px,5vw,40px)}.hero p{margin:4px 0 0;font-size:clamp(14px,2.6vw,18px)}
+.stools{display:flex;justify-content:flex-end;gap:10px;margin:0 0 26px}
+.stools .btn{font-size:14px;padding:8px 16px;border-radius:14px;letter-spacing:.5px}
+.rs{background:#ff9fbd}.wn{background:#7fcbff}
+.sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:26px 20px}
+.team{position:relative;border:4px solid var(--ink);border-radius:30px;padding:24px 14px 16px;text-align:center;box-shadow:0 6px 0 var(--ink);background:#fff}
+.team.k2{background:#eef7ff}.team.k3{background:#fff0f5}
+.team.top{box-shadow:0 6px 0 var(--ink),0 0 0 5px #ff9fc0,0 0 24px #ff9fc0}
+.rkb{position:absolute;top:-16px;left:-10px;background:#ffc2d6;border:3px solid var(--ink);border-radius:99px;padding:2px 13px;font-weight:700;font-size:18px}
+.tr{font-size:38px;line-height:1}.team.top .tr{animation:bob2 1.2s ease-in-out infinite}
+@keyframes bob2{50%{transform:translateY(-6px) rotate(-8deg)}}
+.nmi{font-family:var(--f);font-weight:700;font-size:clamp(17px,3.4vw,24px);border:0;background:transparent;color:var(--ink);width:100%;text-align:center;outline:none;padding:4px 0;border-bottom:2px dashed transparent}
+.nmi:hover,.nmi:focus{border-bottom-color:#0004}
+.sc{position:relative;font-weight:700;font-size:clamp(48px,9vw,84px);line-height:1.05;margin:2px 0 10px}
+.sc em{position:absolute;left:62%;top:0;font-style:normal;color:#1c9a4c;font-size:30px;animation:fup 1s forwards;pointer-events:none}
+@keyframes fup{to{transform:translateY(-36px);opacity:0}}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pt{font-family:var(--f);font-size:18px;padding:11px 4px;border:3px solid var(--ink);border-radius:16px;font-weight:700;cursor:pointer;color:var(--ink);box-shadow:0 4px 0 var(--ink);background:#fff;transition:transform .1s}
+.pt:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.k1 .pl{background:#5bc0ff}.k2 .pl{background:#ff9fbd}.k3 .pl{background:#a9d8ff}
+.bp{bottom:21cqw!important}
+.jb{position:absolute;left:4cqw;right:4cqw;bottom:4cqw;height:15cqw;display:flex;gap:2cqw}
+.card:not(.open) .jb{visibility:hidden;pointer-events:none}
+.jbtn,.und{font-family:var(--f);font-weight:700;border:.8cqw solid var(--ink);border-radius:4cqw;cursor:pointer;color:#fff;box-shadow:0 1cqw 0 var(--ink)}
+.jbtn{flex:1;font-size:max(11px,6cqw)}.jbtn.ok{background:#2fbf71}.jbtn.no{background:#ff5470}
+.jbtn:active,.und:active{transform:translateY(1cqw);box-shadow:0 0 0 var(--ink)}
+.st{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:700;font-size:max(10px,5.2cqw);color:#fff;border-radius:4cqw;border:.8cqw solid var(--ink);line-height:1;padding:0 1cqw}
+.st.ok{background:#2fbf71}.st.no{background:#ff5470}
+.und{width:21cqw;background:#fff;color:var(--ink);font-size:max(9px,4.4cqw)}
+.tb1{background:#bfe3ff}.tb2{background:#ffc9dc}.tb3{background:#d9ccff}
+.md .row{flex-wrap:wrap}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:99px;font-weight:700;z-index:30;animation:in .3s;max-width:92vw;text-align:center}
+.mp{font-size:13px;padding:3px 10px;text-decoration:none;color:var(--ink);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ov{position:fixed;inset:0;background:#0008;z-index:20;display:flex;align-items:center;justify-content:center;padding:18px}
+.md{background:#fff;border:4px solid var(--ink);border-radius:28px;box-shadow:0 8px 0 var(--ink);padding:24px;max-width:420px;width:100%;text-align:center;animation:in .3s}
+.md h3{margin:0 0 8px;font-size:26px}.md .big{font-size:60px}.md .row{display:flex;gap:10px;justify-content:center;margin-top:16px}
+@media(max-width:640px){.sgrid{grid-template-columns:repeat(2,1fr);gap:24px 12px}.team{padding:22px 8px 12px}.pt{font-size:16px;padding:9px 2px}.stools{justify-content:center}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><defs>
+<symbol id="atom" viewBox="0 0 100 100">
+<g fill="none" stroke="#fff" stroke-width="3.5"><ellipse cx="50" cy="50" rx="46" ry="16"/><ellipse cx="50" cy="50" rx="46" ry="16" transform="rotate(60 50 50)"/><ellipse cx="50" cy="50" rx="46" ry="16" transform="rotate(120 50 50)"/></g>
+<g><circle cx="96" cy="50" r="5" fill="#3d9cf0" stroke="#fff" stroke-width="2"/><circle cx="4" cy="50" r="5" fill="#ff7aa5" stroke="#fff" stroke-width="2"/><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="6s" repeatCount="indefinite"/></g>
+<circle cx="50" cy="50" r="22" fill="#fff" stroke="#2b3a67" stroke-width="3"/>
+<circle cx="43" cy="47" r="3" fill="#2b3a67"/><circle cx="57" cy="47" r="3" fill="#2b3a67"/>
+<circle cx="38" cy="54" r="3.5" fill="#ffa6c1"/><circle cx="62" cy="54" r="3.5" fill="#ffa6c1"/>
+<path d="M44 55 Q50 62 56 55" stroke="#2b3a67" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+</symbol></defs></svg>
+<div class="float" id="fl"></div>
+<main>
+<header>
+<div><span class="logo">ATOM <b>CHALLENGE</b></span></div>
+<div class="tag">Rebut Kartu, Kumpulkan Poin! 💖</div>
+<nav class="nav"><a href="#kartu" id="n1" class="on">🃏 Kartu Jawaban</a><a href="#skor" id="n2">🏆 Papan Skor</a></nav>
+
+</header>
+
+<section class="page on" id="pg-kartu">
+<div class="bar" id="tabs">
+<button class="tab on" data-k="ALL">✨ Semua</button>
+<button class="tab" data-k="A">💙 A · 10</button>
+<button class="tab" data-k="B">💗 B · 20</button>
+<button class="tab" data-k="C">💜 C · 30</button>
+</div>
+<div class="bar">
+<input id="q" type="search" placeholder="🔍 Cari kode, mis. B-7" aria-label="Cari kode kartu">
+<span class="pill" id="cnt">Dibuka: 0 / 72</span>
+<button class="btn go" id="rnd">🎲 Acak</button>
+<button class="btn" id="cls">Tutup Semua</button>
+</div>
+<div class="bar" id="mini" style="margin-top:0"></div>
+<div id="out"></div>
+<details class="sum"><summary>📘 Ringkasan Konsep</summary><ul>
+<li><b>Isotop:</b> nomor atom (Z) sama, nomor massa (A) berbeda.</li>
+<li><b>Isobar:</b> nomor massa (A) sama, nomor atom (Z) berbeda.</li>
+<li><b>Isoton:</b> jumlah neutron (n) sama, nomor atom (Z) berbeda.</li>
+<li><b>Isoelektron:</b> jumlah elektron (e) sama.</li>
+<li><b>Aturan poin:</b> benar → A +10, B +20, C +30. Salah → semua kartu −10.</li>
+</ul></details>
+</section>
+
+<section class="page" id="pg-skor">
+<div class="hero"><h2>Papan Peringkat 🏆</h2><p>Atur poin secara manual. Siapa yang akan jadi juara?</p></div>
+<div class="stools"><button class="btn rs" id="rst">RESET SKOR</button><button class="btn wn" id="win">LIHAT PEMENANG</button></div>
+<div class="sgrid" id="teams"></div>
+</section>
+</main>
+<script>
+const A=["Proton","Elektron","Neutron","Inti atom","Inti atom","Mengelilingi inti atom","+1 (positif)","−1 (negatif)","0 (netral)","Elektron","Proton","Neutron","Inti atom/nukleon","Ernest Rutherford","Bola pejal","Nomor massa (jumlah proton + neutron)","Niels Bohr","J. J. Thomson","Nomor atom (jumlah proton)","Lambang unsur","Kekurangan elektron","Kelebihan elektron","Atom netral","Menerima elektron"];
+// [nama, A, Z, proton, muatan, neutron, elektron]
+const B=[["Natrium-23 (Na)",23,11,11,0,12,11],["Litium-7 (Li)",7,3,3,0,4,3],["Ion litium (Li⁺)",7,3,3,1,4,2],["Oksigen-16 (O)",16,8,8,0,8,8],["Kalsium-40 (Ca)",40,20,20,0,20,20],["Karbon-12 (C)",12,6,6,0,6,6],["Ion oksigen (O²⁻)",16,8,8,-2,8,10],["Magnesium-24 (Mg)",24,12,12,0,12,12],["Aluminium-27 (Al)",27,13,13,0,14,13],["Ion natrium (Na⁺)",23,11,11,1,12,10],["Ion magnesium (Mg²⁺)",24,12,12,2,12,10],["Ion kalsium (Ca²⁺)",40,20,20,2,20,18],["Besi-56 (Fe)",56,26,26,0,30,26],["Ion fluorida (F⁻)",19,9,9,-1,10,10],["Klorin-35 (Cl)",35,17,17,0,18,17],["Kobalt-59 (Co)",59,27,27,0,32,27],["Nitrogen-14 (N)",14,7,7,0,7,7],["Ion klorida (Cl⁻)",35,17,17,-1,18,18],["Ion sulfida (S²⁻)",32,16,16,-2,16,18],["Sulfur-32 (S)",32,16,16,0,16,16],["Ion aluminium (Al³⁺)",27,13,13,3,14,10],["Berilium-9 (Be)",9,4,4,0,5,4],["Ion kalium (K⁺)",39,19,19,1,20,18],["Ion seng (Zn²⁺)",65,30,30,2,35,28]];
+// [atom1, atom2, p,n,e atom1, p,n,e atom2, jenis, nilai pembanding]
+const C=[["Na-23","Na-23","11,12,11","11,12,11","Isobar",""],["O-16","O-18","8,8,8","8,10,8","Isotop",""],["Cl-35","Cl-35","17,18,17","17,18,17","Isobar",""],["C-12","C-14","6,6,6","6,8,6","Isotop",""],["Mg-25","Al-26","12,13,12","13,13,13","Isoton","n = 13"],["F-19","Ne-20","9,10,9","10,10,10","Isoton","n = 10"],["S-32","S-32","16,16,16","16,16,16","Isobar",""],["Fe-56","Fe-54","26,30,26","26,28,26","Isotop",""],["Ca-40","Ar-40","20,20,20","18,22,18","Isobar",""],["C-14","N-14","6,8,6","7,7,7","Isobar",""],["He-4","H-3","2,2,2","1,2,1","Isoton","n = 2"],["Na-23⁺","Mg-23²⁺","11,12,10","12,11,10","Isobar & Isoelektron","e = 10"],["O-16²⁻","Ne-20","8,8,10","10,10,10","Isoelektron",""],["K-39⁺","Ca-40²⁺","19,20,18","20,20,18","Isoelektron",""],["N-14³⁻","O-16²⁻","7,7,10","8,8,10","Isoelektron",""],["Al-27³⁺","Ne-20","13,14,10","10,10,10","Isoelektron",""],["Ca-40²⁺","Al-27","20,20,18","13,14,13","Tidak ada",""],["N-14³⁻","O-16²⁻","7,7,10","8,8,10","Isoelektron",""],["C-13","N-14","6,7,6","7,7,7","Isoton","n = 7"],["Cl-37","K-39","17,20,17","19,20,19","Isoton","n = 20"],["Fe-58","Mn-55","26,32,26","25,30,25","Tidak ada",""],["Al-27","Si-28","13,14,13","14,14,14","Isoton","n = 14"],["K-39","Ca-40","19,20,19","20,20,20","Isoton","n = 20"],["Ar-40","K-39⁺","18,22,18","19,20,18","Isoelektron",""]];
+const DESC={"Isotop":"nomor atom sama, nomor massa berbeda","Isobar":"nomor massa sama","Isoton":"jumlah neutron sama, nomor atom berbeda","Isoelektron":"jumlah elektron sama","Isobar & Isoelektron":"nomor massa sama; jumlah elektron sama","Tidak ada":"Tidak termasuk isotop/isobar/isoton/isoelektron karena berbeda semua"};
+
+const TIT={A:"💙 A. Kartu Konsep",B:"💗 B. Kartu Notasi Atom/Ion",C:"💜 C. Kartu Pasangan Atom/Ion & Jenis Hubungannya"};
+const POIN={A:10,B:20,C:30};
+const $=s=>document.querySelector(s),out=$("#out");
+const pe=s=>{const[a,b,c]=s.split(",");return`p=${a}, n=${b}, e=${c}`};
+const ATOM='<svg class="mas" aria-hidden="true"><use href="#atom"/></svg>';
+function back(k,i){
+ if(k=="A")return`<div class="ans">${A[i]}</div>`;
+ if(k=="B"){const d=B[i],m=d[4],mc=m>0?"pos":m<0?"neg":"",ms=m>0?"+"+m:m;
+  return`<div class="nm">${d[0]}</div><div class="chips"><div class="chip"><i>Nomor massa (A)</i><b>${d[1]}</b></div><div class="chip"><i>Nomor atom (Z)</i><b>${d[2]}</b></div><div class="chip"><i>Proton</i><b>${d[3]}</b></div><div class="chip ${mc}"><i>Muatan</i><b>${ms}</b></div><div class="chip"><i>Neutron</i><b>${d[5]}</b></div><div class="chip"><i>Elektron</i><b>${d[6]}</b></div></div>`}
+ const d=C[i],t="t-"+d[4].replace(/ & /g,"").replace("Tidak ada","Tidak");
+ return`<div class="nm">${d[0]} dan ${d[1]}</div><div class="ln">${d[0]}: ${pe(d[2])}<br>${d[1]}: ${pe(d[3])}</div><div class="tp ${t}">${d[4]==="Tidak ada"?"Tidak ada hubungan":d[4]}</div><div class="desc">${DESC[d[4]]}${d[5]?" · <b>"+d[5]+"</b>":""}</div>`}
+function mk(k,i){const code=`${k}-${i+1}`;
+ return`<div class="card ${k}" data-code="${code}" role="button" tabindex="0" aria-pressed="false" aria-label="Kartu ${code}, ketuk untuk membalik" style="animation-delay:${(i%12)*35}ms"><div class="tilt"><div class="in">
+ <div class="face front"><span class="badge">KARTU ${k}</span><div class="star"><span>${POIN[k]}<small>POIN</small></span></div><div class="pan"><div class="code">${code}</div><div class="hint">Ketuk untuk kunci jawaban</div></div>${ATOM}<div class="qm">?</div></div>
+ <div class="face back"><span class="badge">🔑 KUNCI ${code}</span><div class="bp">${back(k,i)}</div><div class="jb">${jbHTML(code)}</div></div></div></div></div>`}
+const PEN={A:10,B:10,C:10};
+let results={};try{results=JSON.parse(localStorage.getItem("atomchallenge-hasil"))||{}}catch(e){}
+const saveRes=()=>{try{localStorage.setItem("atomchallenge-hasil",JSON.stringify(results))}catch(e){}};
+function jbHTML(code){const r=results[code];
+ if(!r)return`<button class="jbtn ok" data-j="1">✅ Benar</button><button class="jbtn no" data-j="0">❌ Salah</button>`;
+ const tm=teams.find(x=>x.id==r.id);
+ return`<div class="st ${r.ok?"ok":"no"}">${r.ok?"✅":"❌"} ${tm?tm.name:"?"} ${r.d>0?"+":r.d<0?"−":""}${Math.abs(r.d)}</div><button class="und" data-und="1">↩ Batal</button>`}
+function refreshCard(code){const c=document.querySelector(`.card[data-code="${code}"]`);if(c)c.querySelector(".jb").innerHTML=jbHTML(code)}
+function toast(m){const d=document.createElement("div");d.className="toast";d.innerHTML=m;document.body.appendChild(d);setTimeout(()=>d.remove(),2800)}
+function judge(code,ok){const k=code[0],pts=ok?POIN[k]:PEN[k];
+ dlg(`<div class="big">${ok?"✅":"❌"}</div><h3>${ok?"Jawaban Benar!":"Jawaban Salah"}</h3><div>Kartu ${code} · <b>${ok?"+":"−"}${pts} poin</b><br>Pilih kelompok:</div>`,
+ [...teams.map(t=>[`${t.name} (${t.score})`,"tb"+((t.id-1)%3+1),()=>{const d=addPts(t.id,ok?pts:-pts);results[code]={id:t.id,ok,d};saveRes();refreshCard(code);toast(`${ok?"✅":"❌"} ${t.name}: ${d>0?"+":d<0?"−":""}${Math.abs(d)} poin`)}]),["Batal","",null]])}
+function undo(code){const r=results[code];if(!r)return;addPts(r.id,-r.d);delete results[code];saveRes();refreshCard(code);toast("↩ Penilaian dibatalkan")}
+let tab="ALL",qs="";
+function draw(){let h="";
+ for(const k of["A","B","C"]){if(tab!="ALL"&&tab!=k)continue;let cs="";
+  for(let i=0;i<24;i++){if(qs&&!`${k}-${i+1}`.toLowerCase().includes(qs))continue;cs+=mk(k,i)}
+  if(cs)h+=`<h2>${TIT[k]} · ${POIN[k]} poin</h2><div class="grid">${cs}</div>`}
+ out.innerHTML=h||'<div class="empty">Kartu tidak ditemukan 🔎</div>';upd()}
+function upd(){$("#cnt").textContent=`Dibuka: ${document.querySelectorAll(".card.open").length} / 72`}
+function boom(el){const r=el.getBoundingClientRect();for(let i=0;i<10;i++){const s=document.createElement("span");s.className="conf";s.textContent=["💫","✨","💖","💜","💙"][i%5];s.style.left=r.left+r.width/2+"px";s.style.top=r.top+r.height/2+"px";s.style.setProperty("--x",(Math.random()-.5)*220+"px");s.style.setProperty("--y",(Math.random()-.8)*200+"px");document.body.appendChild(s);setTimeout(()=>s.remove(),1000)}}
+function flip(c){const o=c.classList.toggle("open");c.setAttribute("aria-pressed",o);if(o)boom(c);upd()}
+out.addEventListener("click",e=>{const c=e.target.closest(".card");
+ if(e.target.closest(".jb")){const b=e.target.closest("button");if(!b||!c)return;const code=c.dataset.code;if(b.dataset.j!==undefined)judge(code,b.dataset.j=="1");else undo(code);return}
+ if(c)flip(c)});
+out.addEventListener("keydown",e=>{if(e.target.closest(".jb"))return;if(e.key=="Enter"||e.key==" "){const c=e.target.closest(".card");if(c){e.preventDefault();flip(c)}}});
+out.addEventListener("pointermove",e=>{const c=e.target.closest(".card");if(!c||e.pointerType=="touch"||c.classList.contains("open"))return;const r=c.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5,t=c.firstElementChild;t.style.setProperty("--ry",x*16+"deg");t.style.setProperty("--rx",-y*16+"deg")});
+out.addEventListener("pointerout",e=>{const c=e.target.closest(".card");if(c){c.firstElementChild.style.setProperty("--rx","0deg");c.firstElementChild.style.setProperty("--ry","0deg")}});
+$("#tabs").addEventListener("click",e=>{const b=e.target.closest(".tab");if(!b)return;document.querySelectorAll(".tab").forEach(t=>t.classList.remove("on"));b.classList.add("on");tab=b.dataset.k;draw()});
+$("#q").addEventListener("input",e=>{qs=e.target.value.trim().toLowerCase();draw()});
+$("#cls").onclick=()=>{document.querySelectorAll(".card.open").forEach(c=>{c.classList.remove("open");c.setAttribute("aria-pressed","false")});upd()};
+$("#rnd").onclick=()=>{tab="ALL";qs="";$("#q").value="";document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("on",t.dataset.k=="ALL"));draw();const cs=[...document.querySelectorAll(".card:not(.open)")];if(!cs.length)return;const c=cs[Math.random()*cs.length|0];c.scrollIntoView({behavior:"smooth",block:"center"});setTimeout(()=>flip(c),450)};
+$("#fl").innerHTML=["⚛️","💙","✨","☁️","🫧","💖","⚛️","💗","✨","🫧"].map((e,i)=>`<span style="left:${i*10+3}%;top:${(i*37)%90}%;animation-delay:${i*.7}s">${e}</span>`).join("");
+
+// ===== PAPAN SKOR =====
+const KEY="atomchallenge-skor6";
+let teams;
+try{teams=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+if(!Array.isArray(teams)||teams.length!=6)teams=[1,2,3,4,5,6].map(n=>({id:n,name:"Kelompok "+n,score:0}));
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(teams))}catch(e){}};
+const sorted=()=>[...teams].sort((a,b)=>b.score-a.score||a.id-b.id);
+function renderScores(){
+ const old={};document.querySelectorAll(".team").forEach(e=>old[e.dataset.id]=e.getBoundingClientRect());
+ const s=sorted(),hi=s[0].score;
+ $("#teams").innerHTML=s.map((t,i)=>`<div class="team k${(t.id-1)%3+1} ${hi>0&&t.score==hi?"top":""}" data-id="${t.id}"><span class="rkb">#${i+1}</span><div class="tr">${hi>0&&t.score==hi?"👑":"🏆"}</div>
+ <input class="nmi" value="${t.name.replace(/"/g,"&quot;")}" maxlength="22" aria-label="Nama kelompok"><div class="sc" id="sc${t.id}">${t.score}</div>
+ <div class="btns"><button class="pt pl" data-a="10">+10</button><button class="pt pl" data-a="20">+20</button><button class="pt pl" data-a="30">+30</button><button class="pt" data-a="-10">−10</button></div></div>`).join("");
+ document.querySelectorAll(".team").forEach(e=>{const o=old[e.dataset.id];if(!o)return;const r=e.getBoundingClientRect(),dx=o.left-r.left,dy=o.top-r.top;if(dx||dy)e.animate([{transform:`translate(${dx}px,${dy}px)`},{transform:"none"}],{duration:600,easing:"cubic-bezier(.34,1.3,.5,1)"})});
+ save();$("#mini").innerHTML=teams.map(x=>`<a class="pill mp" href="#skor">${x.name}: <b>${x.score}</b></a>`).join("")}
+function addPts(id,n){const t=teams.find(x=>x.id==id),nv=t.score+n,d=nv-t.score;if(!d)return 0;t.score=nv;renderScores();
+ const sc=$("#sc"+id);if(sc){const em=document.createElement("em");em.textContent=(d>0?"+":"")+d;if(d<0)em.style.color="#d6336c";sc.appendChild(em);if(d>0&&$("#pg-skor").classList.contains("on"))boom(sc)}return d}
+$("#teams").addEventListener("click",e=>{const b=e.target.closest(".pt");if(b)addPts(+b.closest(".team").dataset.id,+b.dataset.a)});
+$("#teams").addEventListener("input",e=>{if(e.target.classList.contains("nmi")){teams.find(x=>x.id==e.target.closest(".team").dataset.id).name=e.target.value;save()}});
+$("#teams").addEventListener("change",e=>{if(e.target.classList.contains("nmi"))renderScores()});
+// dialog buatan sendiri (confirm() bawaan browser diblokir di halaman tertanam)
+function dlg(html,btns){const o=document.createElement("div");o.className="ov";o.innerHTML=`<div class="md" role="dialog">${html}<div class="row"></div></div>`;const r=o.querySelector(".row");
+ btns.forEach(([l,c,f])=>{const b=document.createElement("button");b.className="btn "+(c||"");b.textContent=l;b.onclick=()=>{o.remove();f&&f()};r.appendChild(b)});
+ o.addEventListener("click",e=>{if(e.target==o)o.remove()});document.body.appendChild(o);return o}
+$("#rst").onclick=()=>dlg('<div class="big">🔄</div><h3>Reset semua skor?</h3><div>Semua kelompok akan kembali ke 0.</div>',[["Batal","",null],["Ya, Reset","rs",()=>{teams.forEach(t=>t.score=0);results={};saveRes();renderScores();draw()}]]);
+$("#win").onclick=()=>{const s=sorted(),hi=s[0].score;
+ if(hi<=0)return dlg('<div class="big">🚀</div><h3>Belum ada poin</h3><div>Ayo rebut kartu dulu!</div>',[["OK","go",null]]);
+ const w=s.filter(t=>t.score==hi),m=["🥈","🥉"],rest=s.filter(t=>t.score<hi).slice(0,2);
+ const o=dlg(`<div class="big">🏆</div><h3>${w.length>1?"Juara Bersama!":"Juara!"}</h3><div style="font-size:28px;font-weight:700">${w.map(t=>t.name).join(" & ")}</div><div>${hi} poin 🎉</div><div style="margin-top:10px;opacity:.8">${rest.map((t,i)=>`${m[i]} ${t.name} (${t.score})`).join(" · ")}</div>`,[["Tutup","go",null]]);
+ const c=o.querySelector(".md");boom(c);setTimeout(()=>boom(c),300);setTimeout(()=>boom(c),600)};
+
+// ===== HALAMAN =====
+function route(){const s=location.hash=="#skor";$("#pg-kartu").classList.toggle("on",!s);$("#pg-skor").classList.toggle("on",s);$("#n1").classList.toggle("on",!s);$("#n2").classList.toggle("on",s);window.scrollTo(0,0);if(s)renderScores()}
+addEventListener("hashchange",route);
+draw();renderScores();route();
+</script>
+</body>
+</html>
